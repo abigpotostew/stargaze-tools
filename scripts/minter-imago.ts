@@ -1,5 +1,5 @@
-import { InstantiateMsg } from '@stargazezone/types/contracts/minter/instantiate_msg';
-import { Timestamp } from '@stargazezone/types/contracts/minter/shared-types';
+import { Decimal } from '@stargazezone/types/contracts/minter/instantiate_msg';
+import { Coin, Timestamp } from '@stargazezone/types/contracts/minter/shared-types';
 import { coins } from 'cosmwasm';
 import inquirer from 'inquirer';
 import { getClient } from '../src/client';
@@ -8,6 +8,7 @@ import { isValidHttpUrl, toStars } from '../src/utils';
 const config = require('../config');
 
 const NEW_COLLECTION_FEE = coins('1000000000', 'ustars');
+const FINALIZER_FEE = coins('0', 'ustars');
 
 function isValidIpfsUrl(uri: string) {
   let url;
@@ -44,9 +45,7 @@ function formatRoyaltyInfo(
   }
 }
 
-export async function init() {
-  console.log('init config name ', config.name);
-  console.log('init config account ', config.account);
+async function init() {
   const account = toStars(config.account);
   const whitelistContract = config.whitelistContract
     ? toStars(config.whitelistContract)
@@ -78,9 +77,11 @@ export async function init() {
   const client = await getClient();
 
   // time expressed in nanoseconds (1 millionth of a millisecond)
-  const startTime: Timestamp = (
-    new Date(config.startTime).getTime() * 1_000_000
-  ).toString();
+  // const startTime: Timestamp = (
+  //   new Date(config.startTime).getTime() * 1_000_000
+  // ).toString();
+  const startTime:Timestamp =((Date.now() + 10*1000 )* 1_000_000).toString();
+
 
   const tempMsg: InstantiateMsg = {
     base_token_uri: config.baseTokenUri,
@@ -90,10 +91,12 @@ export async function init() {
       name: config.name,
       symbol: config.symbol,
       minter: account,
+      finalizer: config.finalizer,
       collection_info: {
         creator: account,
         description: config.description,
         image: config.image,
+        code_uri: config.code_uri,
         external_link: config.external_link,
         royalty_info: royaltyInfo,
       },
@@ -154,8 +157,9 @@ export async function init() {
     console.info('Add these contract addresses to config.js:');
     console.info('minter contract address: ', wasmEvent.attributes[0]['value']);
     console.info('sg721 contract address: ', wasmEvent.attributes[5]['value']);
-    return wasmEvent.attributes[0]['value'];
   }
+
+  //   console.info(wasmEvent.message);
 }
 
 async function setWhitelist(whitelist: string) {
@@ -173,7 +177,7 @@ async function setWhitelist(whitelist: string) {
   console.log('Minter contract: ', config.minter);
   console.log('Setting whitelist contract: ', whitelistContract);
 
-  const msg = { set_whitelist: { whitelist: whitelistContract } };
+  const msg = { set_whitelist: { whitelistContract } };
   console.log(JSON.stringify(msg, null, 2));
   const answer = await inquirer.prompt([
     {
@@ -273,6 +277,39 @@ async function updateStartTime() {
   );
 }
 
+export interface InstantiateMsg {
+  base_token_uri: string
+  num_tokens: number
+  per_address_limit: number
+  sg721_code_id: number
+  sg721_instantiate_msg: InstantiateMsg1
+  start_time: Timestamp
+  unit_price: Coin
+  whitelist?: (string | null)
+  [k: string]: unknown
+}
+export interface InstantiateMsg1 {
+  collection_info: CollectionInfoFor_RoyaltyInfoResponse
+  minter: string
+  name: string
+  symbol: string
+  [k: string]: unknown
+}
+export interface CollectionInfoFor_RoyaltyInfoResponse {
+  creator: string
+  description: string
+  external_link?: (string | null)
+  image: string
+  code_uri:string
+  royalty_info?: (RoyaltyInfoResponse | null)
+  [k: string]: unknown
+}
+export interface RoyaltyInfoResponse {
+  payment_address: string
+  share: Decimal
+  [k: string]: unknown
+}
+
 const args = process.argv.slice(2);
 if (args.length == 0) {
   init();
@@ -285,3 +322,4 @@ if (args.length == 0) {
 } else {
   console.log('Invalid arguments');
 }
+

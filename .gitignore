@@ -47,3 +47,5 @@ airdrop_addresses.csv
 
 # TS
 tsconfig.tsbuildinfo
+config.stew.js
+config.hyperion.final.js
