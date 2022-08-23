@@ -7,6 +7,12 @@ async function queryInfo() {
   const client = await CosmWasmClient.connect(config.rpcEndpoint);
   const account = toStars(config.account);
   const minter = toStars(config.minter);
+  const finalizer = toStars(config.finalizer);
+
+  const finalizerConfigResponse = await client.queryContractSmart(finalizer, {
+    config: {},
+  });
+  console.log('finalizer configResponse: ', finalizerConfigResponse);
 
   const balance = await client.getBalance(account, 'ustars');
   console.log('account balance:', balance);
@@ -17,6 +23,9 @@ async function queryInfo() {
   console.log('minter configResponse: ', configResponse);
 
   const sg721 = configResponse.sg721_address;
+
+  console.log("minter:", minter)
+  console.log("sg721:", sg721)
   const whitelistContract = configResponse.whitelist;
 
   const numTokens = await client.queryContractSmart(sg721, { num_tokens: {} });
@@ -45,6 +54,7 @@ async function queryInfo() {
   const nfts = await client.queryContractSmart(sg721, {
     tokens: { owner: account, limit: 30 },
   });
+  console.log({nfts})
   for (let id of nfts.tokens) {
     const tokenInfo = await client.queryContractSmart(sg721, {
       all_nft_info: { token_id: id },

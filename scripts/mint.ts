@@ -39,13 +39,15 @@ async function mintTo(recipient: string) {
 
   const msg = { mint_to: { recipient: starsRecipient } };
   console.log(JSON.stringify(msg, null, 2));
-
+  const mintFee = coins((15_000_000).toString(), 'ustars');
   const result = await client.execute(
     config.account,
     config.minter,
     msg,
     'auto',
-    'mint to'
+    'mint to',
+    mintFee
+
   );
   const wasmEvent = result.logs[0].events.find((e) => e.type === 'wasm');
   console.info(

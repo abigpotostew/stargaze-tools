@@ -92,11 +92,11 @@ async function init() {
       symbol: config.symbol,
       minter: account,
       finalizer: config.finalizer,
+      code_uri: config.code_uri,
       collection_info: {
         creator: account,
         description: config.description,
         image: config.image,
-        code_uri: config.code_uri,
         external_link: config.external_link,
         royalty_info: royaltyInfo,
       },
@@ -293,6 +293,8 @@ export interface InstantiateMsg1 {
   minter: string
   name: string
   symbol: string
+  code_uri:string
+  finalizer:string
   [k: string]: unknown
 }
 export interface CollectionInfoFor_RoyaltyInfoResponse {
@@ -300,7 +302,6 @@ export interface CollectionInfoFor_RoyaltyInfoResponse {
   description: string
   external_link?: (string | null)
   image: string
-  code_uri:string
   royalty_info?: (RoyaltyInfoResponse | null)
   [k: string]: unknown
 }
