@@ -7,7 +7,7 @@ import { getClient } from '../src/client';
 
 const config = require('../config');
 
-const WHITELIST_CREATION_FEE = coins('100000000', 'ustars');
+const WHITELIST_CREATION_FEE = coins('200000000', 'ustars');
 
 async function init() {
   if (!config.whitelistStartTime || config.whitelistStartTime == '') {

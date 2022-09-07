@@ -54,6 +54,7 @@ async function queryInfo() {
   const nfts = await client.queryContractSmart(sg721, {
     tokens: { owner: account, limit: 30 },
   });
+
   console.log({nfts})
   for (let id of nfts.tokens) {
     const tokenInfo = await client.queryContractSmart(sg721, {
@@ -61,5 +62,13 @@ async function queryInfo() {
     });
     console.log('tokenInfo:', tokenInfo);
   }
+
+  const nftOneInfo = await client.queryContractSmart(sg721, {
+    nft_info: { token_id:"1" },
+  });
+  console.log({nftOneInfo})
+
+  const minterBalance = await client.getBalance(minter, 'ustars');
+  console.log('minter balance:', minterBalance)
 }
 queryInfo();

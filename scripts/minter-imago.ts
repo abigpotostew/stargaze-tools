@@ -202,6 +202,46 @@ async function setWhitelist(whitelist: string) {
   );
 }
 
+async function withdrawFunds() {
+  const client = await getClient();
+  const account = toStars(config.account);
+  const minter = toStars(config.minter);
+
+  if (!minter) {
+    throw Error(
+      '"minter" must be set to a minter contract address in config.js'
+    );
+  }
+
+  const minterBalance = await client.getBalance(minter, 'ustars');
+  console.log('Minter contract: ', config.minter);
+  console.log('Minter balance:', minterBalance)
+
+  const msg = { withdraw: {  } };
+  console.log(JSON.stringify(msg, null, 2));
+  const answer = await inquirer.prompt([
+    {
+      message: 'Ready to submit the transaction?',
+      name: 'confirmation',
+      type: 'confirm',
+    },
+  ]);
+  if (!answer.confirmation) return;
+
+  const result = await client.execute(
+    account,
+    minter,
+    msg,
+    'auto',
+    'withdraw'
+  );
+  const wasmEvent = result.logs[0].events.find((e) => e.type === 'wasm');
+  console.info(
+    'The `wasm` event emitted by the contract execution:',
+    wasmEvent
+  );
+}
+
 async function updatePerAddressLimit() {
   const client = await getClient();
   const account = toStars(config.account);
@@ -314,7 +354,9 @@ export interface RoyaltyInfoResponse {
 const args = process.argv.slice(2);
 if (args.length == 0) {
   init();
-} else if (args.length == 2 && args[0] == '--whitelist') {
+} else if (args.length == 1 && args[0] == '--withdraw') {
+  withdrawFunds();
+}else if (args.length == 2 && args[0] == '--whitelist') {
   setWhitelist(args[1]);
 } else if (args.length == 1 && args[0] == '--update-start-time') {
   updateStartTime();
